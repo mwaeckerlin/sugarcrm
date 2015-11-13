@@ -5,6 +5,9 @@
 FROM ubuntu
 MAINTAINER mwaeckerlin
 
+EXPOSE 80
+ENV TIMEZONE "Europe/Zurich"
+
 RUN mkdir /sugar
 WORKDIR /sugar
 RUN apt-get update
@@ -14,7 +17,7 @@ RUN unzip sugar.zip
 RUN rm sugar.zip
 RUN mv * crm
 RUN sed -i 's,DocumentRoot.*,DocumentRoot /sugar/crm,' /etc/apache2/sites-available/000-default.conf
-RUN sed -i 's,;*\(date.timezone *=\).*,\1 "Europe/Zurich",g' /etc/php5/apache2/php.ini
+RUN sed -i 's,;*\(date.timezone *=\).*,\1 "'${TIMEZONE}'",g' /etc/php5/apache2/php.ini
 RUN sed -i 's,;*\(display_errors *=\).*,\1 Off,g' /etc/php5/apache2/php.ini
 RUN sed -i 's,;*\(mbstring.func_overload *=\).*,\1 0,g' /etc/php5/apache2/php.ini
 RUN sed -i 's,;*\(post_max_size *=\).*,\1 100M,g' /etc/php5/apache2/php.ini
@@ -30,5 +33,7 @@ RUN ( echo "<Directory /sugar/crm>"; \
       echo "</Directory>"; \
     ) > /etc/apache2/conf-available/sugarcrm.conf
 RUN a2enconf sugarcrm
+
+CMD sed -i 's,;*\(date.timezone *=\).*,\1 "'${TIMEZONE}'",g' /etc/php5/apache2/php.ini \
+    && apache2ctl -DFOREGROUND
 VOLUME /sugar
-CMD apache2ctl -DFOREGROUND
